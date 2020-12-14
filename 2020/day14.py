@@ -3,8 +3,7 @@ import re
 
 def p(section):
     mask = section[:36]
-    lines = section.strip().split('\n')[1:]
-    actions = [(int(key),int(val)) for line in lines for key, val in re.findall('(\d+)] = (\d+)', line)]
+    actions = [(int(key),int(val)) for key, val in re.findall('mem\[(\d+)] = (\d+)', section)]
     return mask, actions
 
 contents = data(parser=p, delimiter='mask = ')[1:]

@@ -9,12 +9,14 @@ def getNeighbors(cell):
 
 def playLife(layout, dimensions=2, cycles=6):
     assert(dimensions >= 2)
-    living = [(x, y) + (0,)*(dimensions - 2) for x, line in enumerate(layout) for y, cell in filter(lambda c: c[1] == '#', enumerate(line))]
+    living = {(x, y) + (0,)*(dimensions - 2) for x, line in enumerate(layout) for y, cell in filter(lambda c: c[1] == '#', enumerate(line))}
     for cycle in range(cycles):
         neighbors = Counter(neighbor for cell in living for neighbor in getNeighbors(cell))
-        living = [cell for cell, neighborCount in filter(lambda x: x[1] == 3 or x[0] in living and x[1] == 2, neighbors.items())]
+        living = {cell for cell, neighborCount in filter(lambda x: x[1] == 3, neighbors.items())}.union(
+                 {cell for cell, neighborCount in filter(lambda x: x[1] == 2, neighbors.items())}.intersection(living)
+                 )
     return len(living)
 
 layout = data()
-print("Part 1:", playLife(layout, 3))
-print("Part 2:", playLife(layout, 4))
+for part in range(2):
+    print(f"Part {part+1}:", playLife(layout, part+3))

@@ -2,7 +2,7 @@ from collections import Counter
 from aoc import data
 import re
 
-parser = lambda x: re.findall('ne|nw|se|sw|e|w', x)
+parser = lambda x: re.findall('[ns]?[ew]', x)
 instructions = data(parser=parser)
 
 directions = { "nw": (-1-1j), "ne": (1-1j), "sw": (-1+1j), "se": (+1+1j), "w": (-2+0j), "e": (+2+0j) }

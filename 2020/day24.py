@@ -13,12 +13,10 @@ blackTiles = [tile for tile, times in filter(lambda x: x[1] % 2, flippedTiles.it
 part1 = len(blackTiles)
 
 findNeighbors = lambda tile: {tile + d for d in directions.values()}
-stayBlack = lambda x: x[1] == 1
-turnBlack = lambda x: x[1] == 2
 for day in range(1, 101):
     neighbors = Counter(tile for nearby in map(findNeighbors, blackTiles) for tile in nearby)
-    blackTiles = {tile for tile, n in filter(stayBlack, neighbors.items())}.intersection(blackTiles).union(
-                 {tile for tile, n in filter(turnBlack, neighbors.items())}
+    blackTiles = {tile for tile, n in filter(lambda x: x[1] == 1, neighbors.items())}.intersection(blackTiles).union(
+                 {tile for tile, n in filter(lambda x: x[1] == 2, neighbors.items())}
                  )
 part2 = len(blackTiles)
 

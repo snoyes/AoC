@@ -1,4 +1,3 @@
-import pytest
 from random import *
 from day2 import *
 

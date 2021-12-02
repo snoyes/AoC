@@ -74,11 +74,11 @@ def test_part1_no_down():
 
 def test_part1_new_forward():
     numDirections = randrange(maxNumDirections + 1)
-    inputData = [(choice(commands), randrange(0, maxVal)) for _ in range(numDirections)]
+    inputData = [(choice(commands), randrange(1, maxVal)) for _ in range(numDirections)]
     extraCommand = ('forward', randrange(1, maxVal))
-    i = randrange(0, numDirections)
+    i = randint(0, numDirections)
     extraData = inputData[:i] + [extraCommand] + inputData[i:]
-    assert abs(part1(inputData)) < abs(part1(extraData))
+    assert abs(part1(inputData)) <= abs(part1(extraData))
 
 def test_part2_example():
     assert part2(exampleData) == 900

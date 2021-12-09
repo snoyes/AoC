@@ -16,13 +16,12 @@ def part1(inputData):
 
 def getBasin(row, col, inputData):
     height, width = len(inputData), len(inputData[0])
-    basin = {(row, col)}
-    visited = basin
-    while len(visited):
-        newNeighbors = {neighbor for row, col in visited for neighbor in getNeighbors(row, col, height, width)
+    basin = newNeighbors = {(row, col)}
+    while len(newNeighbors):
+        newNeighbors = {neighbor for row, col in newNeighbors for neighbor in getNeighbors(row, col, height, width)
                 if inputData[neighbor[0]][neighbor[1]] < 9 and neighbor not in basin
                 }
-        basin |= (visited := newNeighbors)
+        basin |= newNeighbors
     return basin
 
 def part2(inputData):

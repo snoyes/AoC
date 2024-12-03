@@ -1,15 +1,19 @@
--- Read the input file and eliminate any carriage return/newlines
-SET @input = REPLACE(REPLACE(CAST(LOAD_FILE('C:/ProgramData/MySQL/MySQL Server 9.0/Uploads/input.txt') AS char), '\r', ''), '\n', '');
+USE aoc2024;
+DROP TABLE IF EXISTS day03;
+CREATE TABLE day03 (part tinyint, input text);
 
--- Uncomment for Part 2: Put each do() on its own line, scrub everything after the don't()s, glue lines back together
--- SET @input = REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(@input, 'do\\(\\)', '\ndo\\(\\)'), "(?m)don't\\(\\).*", ''), '\n', '');
+-- For part 1, just strip newline characters from the raw file
+INSERT INTO day03 VALUES (1, REPLACE(REPLACE(CAST(LOAD_FILE('C:/ProgramData/MySQL/MySQL Server 9.0/Uploads/input.txt') AS char), '\r', ''), '\n', ''));
 
-SELECT SUM(a*b) FROM JSON_TABLE(
+-- For part 2, put each do() on its own line, remove everything after the don't()s, and glue the lines back together
+INSERT INTO day03 SELECT 2, REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(input, 'do\\(\\)', '\ndo\\(\\)'), "(?m)don't\\(\\).*", ''), '\n', '') FROM day03;
+
+SELECT part, SUM(a*b) FROM day03 JOIN JSON_TABLE(
     CONCAT('[', 
         REGEXP_REPLACE(
             TRIM('\n' FROM 
                 REGEXP_REPLACE( REGEXP_REPLACE( REGEXP_REPLACE( REGEXP_REPLACE( REGEXP_REPLACE( REGEXP_REPLACE( REGEXP_REPLACE( REGEXP_REPLACE(REGEXP_REPLACE( REGEXP_REPLACE(
-                    CONCAT(@input, '\n'),                     -- Add a newline to the end
+                    CONCAT(input, '\n'),                     -- Add a newline to the end
                     '^.*?mul\\(', 'mul\\('),                  -- Scrub everything before the first mul(
                     'mul\\(', '\nmul\\('),                    -- Put each mul( on its own line
                     '(?m)^mul\\([^0-9].*$', ''),              -- Remove lines missing a numeric first argument
@@ -24,4 +28,5 @@ SELECT SUM(a*b) FROM JSON_TABLE(
             '\n+', ','),                                      -- Condense lines into array of arrays
     ']'),
     '$[*]' COLUMNS (a int path '$[0]', b int path '$[1]')
-) jt;
+) jt
+GROUP BY part;

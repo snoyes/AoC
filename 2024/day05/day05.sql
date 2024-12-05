@@ -26,7 +26,7 @@ FROM (
         part,
         COUNT(comes_before) = FLOOR( COUNT(*) OVER (PARTITION BY id) / 2) AS is_center_page 
     FROM day05_pages
-    JOIN JSON_TABLE(CONCAT('[', line, ']'), '$[*]' COLUMNS (n for ordinality, page INT path '$')) jt 
+    JOIN JSON_TABLE(CONCAT('[', line, ']'), '$[*]' COLUMNS (page INT path '$')) jt 
     LEFT JOIN day05_rules ON FIND_IN_SET(comes_before, line) AND page = comes_after
     GROUP BY id, page
 ) dt

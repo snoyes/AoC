@@ -17,11 +17,11 @@ LOAD DATA LOCAL INFILE 'input.txt' INTO TABLE day10 FIELDS TERMINATED BY '' LINE
 DELETE FROM day10 WHERE d = '\n';
 ALTER TABLE day10 MODIFY d tinyint, MODIFY c tinyint, DROP INDEX rc, ADD INDEX (d, r, c);
 
-WITH RECURSIVE dfs AS (
+WITH RECURSIVE bfs AS (
     SELECT d, r AS trailhead_r, c AS trailhead_c, r, c FROM day10 WHERE d = 0 
     UNION ALL 
     SELECT day10.d, trailhead_r, trailhead_c, day10.r, day10.c
-    FROM dfs 
-    JOIN day10 ON day10.d = dfs.d + 1 AND ABS(day10.r - dfs.r) + ABS(day10.c - dfs.c) = 1
+    FROM bfs 
+    JOIN day10 ON day10.d = bfs.d + 1 AND ABS(day10.r - bfs.r) + ABS(day10.c - bfs.c) = 1
 )
-SELECT COUNT(DISTINCT trailhead_r, trailhead_c, r, c) AS part1, COUNT(*) AS part2 FROM dfs where d = 9;
+SELECT COUNT(DISTINCT trailhead_r, trailhead_c, r, c) AS part1, COUNT(*) AS part2 FROM bfs where d = 9;

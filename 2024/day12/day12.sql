@@ -28,7 +28,7 @@ ALTER TABLE day12 MODIFY c smallint unsigned, ADD COLUMN id SERIAL FIRST, ENGINE
 
 CREATE TABLE day12_regions (
     d char(1) CHARACTER SET latin1, 
-    p POLYGON SRID 0,  
+    p GEOMETRY SRID 0,  
     ids TEXT, -- an array would have been more appropriate, but JSON_CONTAINS is slower than FIND_IN_SET
     INDEX (d)
 );
@@ -51,26 +51,21 @@ CREATE TRIGGER day12_loop_bi BEFORE INSERT ON day12_loop FOR EACH ROW
             FROM floodfill 
             JOIN day12 ON 
                 floodfill.d = day12.d 
-                AND (day12.r, day12.c) IN ((floodfill.r + 1, floodfill.c), (floodfill.r - 1, floodfill.c), (floodfill.r, floodfill.c+1), (floodfill.r, floodfill.c - 1))
-        ),
-        -- There are no geometry aggregation functions, and ST_Union accepts only two parameters,
-        -- so these next three table expressions combine all the cells into a single polygon.
-        fetch_geometry AS (SELECT ROW_NUMBER() OVER () AS rn, floodfill.d, floodfill.id, day12.p FROM floodfill JOIN day12 USING (id)),
-        union_geometry AS (
-            SELECT rn, d, id, p FROM fetch_geometry WHERE rn = 1 
-            UNION ALL 
-            SELECT fetch_geometry.rn, fetch_geometry.d, fetch_geometry.id, ST_Union(union_geometry.p, fetch_geometry.p) 
-            FROM union_geometry 
-            JOIN fetch_geometry ON union_geometry.rn + 1 = fetch_geometry.rn
-        ),
-        final_geometry AS (SELECT d, id, LAST_VALUE(p) OVER (ORDER BY rn rows BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) p FROM union_geometry)
-        SELECT ANY_VALUE(d), ST_Simplify(ANY_VALUE(p), 0.25), GROUP_CONCAT(id) FROM final_geometry;
-
+                -- AND (day12.r, day12.c) IN ((floodfill.r + 1, floodfill.c), (floodfill.r - 1, floodfill.c), (floodfill.r, floodfill.c+1), (floodfill.r, floodfill.c - 1))
+                AND (day12.r = floodfill.r OR day12.r = floodfill.r + 1 OR day12.r = floodfill.r - 1) AND (day12.c = floodfill.c OR day12.c = floodfill.c + 1 OR day12.c = floodfill.c - 1) AND (day12.r = floodfill.r) != (day12.c = floodfill.c)
+        )
+        SELECT 
+            ANY_VALUE(floodfill.d),
+            -- MySQL has only the two-argument version of ST_Union, but it will collapse a geometry collection into a single polygon
+            ST_Simplify( ST_Union( ST_GeomFromText('GEOMETRYCOLLECTION EMPTY'), ST_GeomFromText( CONCAT( 'GEOMETRYCOLLECTION(', GROUP_CONCAT(ST_AsText(p)), ')'))), 0.25), 
+            GROUP_CONCAT(id) AS ids
+            FROM floodfill 
+            JOIN day12 USING (id)
+            HAVING ids IS NOT NULL;
+        
 SET group_concat_max_len=1024*1024;
-INSERT INTO day12_loop SELECT id FROM day12;
 
--- Cells from regions already calculated insert a NULL row
-DELETE FROM day12_regions WHERE d IS NULL;
+INSERT INTO day12_loop SELECT id FROM day12;
 
 SELECT SUM(area * perimeter) AS part1, SUM(area * edges) AS part2 
 FROM (

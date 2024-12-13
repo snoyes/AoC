@@ -72,13 +72,13 @@ INSERT INTO day12_loop SELECT id FROM day12;
 -- Cells from regions already calculated insert a NULL row
 DELETE FROM day12_regions WHERE d IS NULL;
 
-SELECT SUM(area * perimiter) AS part1, SUM(area * edges) AS part2 
+SELECT SUM(area * perimeter) AS part1, SUM(area * edges) AS part2 
 FROM (
     WITH RECURSIVE cte AS (
         SELECT d, p, ST_ExteriorRing(p) AS ring, 1 AS n FROM day12_regions
         UNION ALL 
         SELECT d, p, ST_InteriorRingN(p, n), n + 1 FROM cte WHERE n <= ST_NumInteriorRing(p)
     )
-    SELECT ST_Area(p) AS area, SUM(ST_Length(ring)) AS perimiter, SUM(ST_NumPoints(ring) - 1) AS edges FROM cte
+    SELECT ST_Area(p) AS area, SUM(ST_Length(ring)) AS perimeter, SUM(ST_NumPoints(ring) - 1) AS edges FROM cte
     GROUP BY p
 ) dt;
